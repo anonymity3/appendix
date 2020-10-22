@@ -1,6 +1,5 @@
 import numpy as np
 import torch
-from utils import ZFilter, Identity, RewardFilter
 
 TorchFloat = None
 TorchLong = None
