@@ -178,16 +178,16 @@ class Charging_Env:
         idx = np.random.randint(k)
         return ind[idx]
     
-    def estimate_charge_power(self, cs_idx):
+    def est_power(self, cs_idx):
         charge_power = np.random.normal(self.avg_charge_power,self.std_charge_power)
         return charge_power
 
-    def estimate_charge_time(self, cs_idx):
-        charge_power = self.estimate_charge_power(cs_idx)
+    def est_time(self, cs_idx):
+        charge_power = self.est_power(cs_idx)
         charge_time = (charge_power / (self.powers[cs_idx]*self.power_rate)) * 60
         return charge_time, charge_power
 
-    def get_reward(self, cs_idx, hour):
+    def get_cp(self, cs_idx, hour):
         return self.charge_fee24[cs_idx,hour]
     
     def supply_load(self, day):
@@ -356,7 +356,7 @@ class Charging_Env:
             while(time_cost<=self.limit_waiting_time):
                 if(self._state[tn,cs_idx,sup_i]>=1): # vehicle success charge
                     in_t = tn
-                    charge_time, charge_power = np.ceil(self.estimate_charge_time(cs_idx)).astype(np.int32) # gaussian distribution
+                    charge_time, charge_power = np.ceil(self.est_time(cs_idx)).astype(np.int32) # gaussian distribution
                     leave_t = tn + charge_time # leave time 
                     self._state[in_t:leave_t,cs_idx,sup_i] -= 1
                     if(leave_t > self.T): 
@@ -375,8 +375,8 @@ class Charging_Env:
                 success_cnt += 1
                 if(done == 1): tn += self.T
                 # 0.64, 1.73, 2.3
-                fee = self.get_reward(cs_idx, hour=int(tn%self.T/60))
-                o_fee = self.get_reward(o_cs_idx, hour=int(tn%self.T/60))
+                fee = self.get_cp(cs_idx, hour=int(tn%self.T/60))
+                o_fee = self.get_cp(o_cs_idx, hour=int(tn%self.T/60))
                 if(is_rec): # successful charging and accept recommendation
                     success_cnt_rec += 1
                     fee_costs.append(fee)
